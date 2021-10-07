@@ -44,6 +44,8 @@ public interface IAndroidMediaObjectFactory {
 
     Render createSink(String fileName, int orientationHint,  IProgressListener progressListener, ProgressTracker progressTracker) throws IOException;
 
+    Render createSink(FileDescriptor fileName, int orientationHint,  IProgressListener progressListener, ProgressTracker progressTracker) throws IOException;
+
     Render createSink(StreamingParameters StreamingParams, IProgressListener progressListener, ProgressTracker progressTracker);
 
     ICaptureSource createCaptureSource();

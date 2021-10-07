@@ -23,6 +23,7 @@ import org.m4m.domain.IMediaCodec;
 import org.m4m.domain.IMediaMuxer;
 import org.m4m.domain.MediaFormat;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -33,6 +34,10 @@ public class MediaMuxerPlugin implements IMediaMuxer {
 
     public MediaMuxerPlugin(String filename, int outputFormat) throws IOException {
         mediaMuxer = new MediaMuxer(filename, outputFormat);
+    }
+
+    public MediaMuxerPlugin(FileDescriptor fD, int outputFormat) throws IOException {
+        mediaMuxer = new MediaMuxer(fD, outputFormat);
     }
 
     @Override

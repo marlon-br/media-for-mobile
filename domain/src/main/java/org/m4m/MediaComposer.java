@@ -144,6 +144,10 @@ public class MediaComposer implements Serializable {
         this.setTargetFile(fileName, 0);
     }
 
+    public void setTargetFile(FileDescriptor fileDescriptor) throws IOException {
+        this.setTargetFile(fileDescriptor, 0);
+    }
+
     /**
      * Sets the target file.
      *
@@ -152,6 +156,10 @@ public class MediaComposer implements Serializable {
      */
     public void setTargetFile(String fileName, int orientationHint) throws IOException {
         this.sink = factory.createSink(fileName, orientationHint, progressListener, progressTracker);
+    }
+
+    public void setTargetFile(FileDescriptor fileDescriptor, int orientationHint) throws IOException {
+        this.sink = factory.createSink(fileDescriptor, orientationHint, progressListener, progressTracker);
     }
 
     /**
