@@ -395,7 +395,7 @@ public class ComposerTranscodeCoreActivity extends ActivityWithTimeline implemen
          * TODO: Audio resampling is unsupported by current m4m release
          * Output sample rate and channel count are the same as for input.
          */
-        AudioFormatAndroid aFormat = new AudioFormatAndroid(audioMimeType, audioFormat.getAudioSampleRateInHz(), audioFormat.getAudioChannelCount());
+        AudioFormatAndroid aFormat = new AudioFormatAndroid(audioMimeType, 44100, 2);//audioFormat.getAudioSampleRateInHz(), audioFormat.getAudioChannelCount());
 
         aFormat.setAudioBitrateInBytes(audioBitRate);
         aFormat.setAudioProfile(MediaCodecInfo.CodecProfileLevel.AACObjectLC);

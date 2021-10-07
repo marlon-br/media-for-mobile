@@ -32,7 +32,7 @@ public class VideoFormatFake extends VideoFormat {
     }
 
     @Override
-    protected int getInteger(String key) {
+    public int getInteger(String key) {
         return values.get(key);
     }
 

@@ -77,8 +77,10 @@ public class ComposerMediaFileInfoCoreActivity extends ComposerTranscodeCoreActi
                     sliderPosition = (long) ((double) progressChanged / (100.0) * (double) duration);
                     sliderPositionTextView.setText(String.format("slider position = %.1f sec", (double) sliderPosition / 10e5));
 
-                    ByteBuffer buffer = ByteBuffer.allocate(1);
-                    mediaFileInfo.getFrameAtPosition(sliderPosition, buffer);
+        //            ByteBuffer buffer = ByteBuffer.allocate(1);
+        //            mediaFileInfo.getFrameAtPosition(sliderPosition, buffer);
+                    mediaFileInfo.getRealFrequencyAndChannelCount();
+
                 } catch (NullPointerException e) {
                     e.printStackTrace();
                 } catch (IOException e) {

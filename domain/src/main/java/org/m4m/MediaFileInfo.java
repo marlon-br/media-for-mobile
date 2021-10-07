@@ -16,6 +16,7 @@
 
 package org.m4m;
 
+import org.m4m.domain.AudioDecoder;
 import org.m4m.domain.Command;
 import org.m4m.domain.CommandQueue;
 import org.m4m.domain.Frame;
@@ -25,6 +26,7 @@ import org.m4m.domain.MediaFormat;
 import org.m4m.domain.MediaFormatType;
 import org.m4m.domain.MediaSource;
 import org.m4m.domain.Pair;
+import org.m4m.domain.Plugin;
 import org.m4m.domain.VideoDecoder;
 
 import java.io.FileDescriptor;
@@ -40,6 +42,7 @@ public class MediaFileInfo {
     MediaFile file;
     MediaSource source;
     VideoDecoder videoDecoder;
+    Plugin audioDecoder;
     MediaFormat videoFormat = null;
     MediaFormat audioFormat = null;
     private ISurfaceWrapper outputSurface = null;
@@ -256,6 +259,99 @@ public class MediaFileInfo {
 
         sourceOutputQueue.clear();
         videoDecoder.close();
+    }
+
+    public MediaFormat getRealFrequencyAndChannelCount() throws IOException {
+        audioDecoder = factory.createAudioDecoder();
+        audioDecoder.setMediaFormat(audioFormat);
+        audioDecoder.configure();
+        audioDecoder.setTrackId(source.getTrackIdByMediaType(MediaFormatType.AUDIO));
+        audioDecoder.start();
+
+        if (null != videoFormat) {
+            source.selectTrack(source.getTrackIdByMediaType(MediaFormatType.AUDIO));
+            source.unselectTrack(source.getTrackIdByMediaType(MediaFormatType.VIDEO));
+        }
+
+        source.start();
+
+        MediaFormat mediaFormat = null;
+
+        for (int i = 0; i < 3; i++) {
+
+            Frame frame = null;
+            final CommandQueue sourceOutputQueue = source.getOutputCommandQueue();
+
+            while (sourceOutputQueue.size() != 0) {
+
+                Pair<Command, Integer> sourceOutputCommand = sourceOutputQueue.first();
+
+                if (sourceOutputCommand == null || sourceOutputCommand.left == Command.EndOfFile) {
+                    break;
+                }
+
+                audioDecoder.fillCommandQueues();
+
+                final CommandQueue audioDecoderInputQueue = audioDecoder.getInputCommandQueue();
+                final Pair<Command, Integer> audioDecoderInputCommand = audioDecoderInputQueue.first();
+
+                if (audioDecoderInputQueue.size() == 0 || audioDecoderInputCommand == null) {
+                    break;
+                } else {
+                    if (audioDecoderInputCommand.left == Command.NeedData) {
+                        frame = ((AudioDecoder)audioDecoder).findFreeFrame();
+                    } else if (audioDecoderInputCommand.left == Command.NeedInputFormat) {
+                        audioDecoderInputQueue.dequeue();
+                        audioDecoderInputQueue.queue(Command.NeedData, audioDecoder.getTrackId());
+                        continue;
+                    }
+                }
+
+                if (frame != null) {
+                    source.pull(frame);
+                    audioDecoder.push(frame);
+
+                    sourceOutputQueue.dequeue();
+                    audioDecoderInputQueue.dequeue();
+                } else {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                final CommandQueue aDecoderOutputQueue = audioDecoder.getOutputCommandQueue();
+                final Pair<Command, Integer> aDecoderOutputCommand = aDecoderOutputQueue.first();
+
+                if (aDecoderOutputQueue.size() != 0 && aDecoderOutputCommand != null) {
+                    if (aDecoderOutputCommand.left == Command.HasData) {
+                        mediaFormat = ((AudioDecoder) audioDecoder).getOutputMediaFormat();
+                        break;
+                    } else if (aDecoderOutputCommand.left == Command.OutputFormatChanged) {
+                        aDecoderOutputQueue.dequeue();
+                    }
+                }
+            }
+
+            sourceOutputQueue.clear();
+
+            if (mediaFormat != null) {
+                break;
+            }
+
+            this.source.seek(0);
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        audioDecoder.close();
+        return mediaFormat;
     }
 
     /**

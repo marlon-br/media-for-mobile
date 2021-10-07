@@ -34,7 +34,7 @@ public abstract class MediaFormat {
 
     abstract protected void setInteger(String key, int value);
 
-    abstract protected int getInteger(String key);
+    abstract public int getInteger(String key);
 
     abstract protected long getLong(String key);
 

@@ -21,6 +21,7 @@ import org.m4m.IProgressListener;
 import org.m4m.VideoFormat;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 public class MuxRender extends Render {
@@ -81,8 +82,11 @@ public class MuxRender extends Render {
             releaser.releaseOutputBuffer(frame.getBufferIndex());
             feedMeIfNotDraining();
         } else {
-            frameBuffer.push(frame);
-            releasersList.add(releaser);
+            ByteBuffer bb = ByteBuffer.allocate(frame.getLength());
+            Frame frame1 = new Frame(bb, 0, 0, 0, 0, 0);
+            frame1.copyDataFrom(frame);
+            frameBuffer.push(frame1);
+            releaser.releaseOutputBuffer(frame.getBufferIndex());
             getInputCommandQueue().queue(Command.NeedInputFormat, 0);
         }
     }
@@ -91,8 +95,6 @@ public class MuxRender extends Render {
         while (frameBuffer.canPull()) {
             Frame bufferedFrame = frameBuffer.pull();
             writeSampleData(bufferedFrame);
-            releasersList.get(0).releaseOutputBuffer(bufferedFrame.getBufferIndex());
-            releasersList.remove(0);
         }
     }
 

@@ -37,7 +37,7 @@ public class AudioFormatFake extends AudioFormat {
     }
 
     @Override
-    protected int getInteger(String key) {
+    public int getInteger(String key) {
         return values.get(key);
     }
 
